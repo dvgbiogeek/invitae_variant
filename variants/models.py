@@ -8,6 +8,9 @@ class Gene(models.Model):
     gene_id = models.AutoField(primary_key=True)
     gene_name = models.CharField(max_length=24, blank=True)
 
+    def __str__(self):
+        return self.gene_name
+
 
 class Transcript(models.Model):
     """
@@ -15,6 +18,9 @@ class Transcript(models.Model):
     """
     transcript_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=32, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Allele(models.Model):
@@ -46,6 +52,9 @@ class Variant(models.Model):
     reported_alt = models.ForeignKey(Allele, on_delete=models.PROTECT, related_name="reported_alt")
     protein_change = models.CharField(max_length=32, blank=True)
 
+    def __str__(self):
+        return "{} {}".format(self.protein_change, self.mappings)
+
 
 class MappingJoinTable(models.Model):
     mapping = models.ForeignKey(Mapping, on_delete=models.PROTECT)
@@ -68,6 +77,9 @@ class GenomicLocation(models.Model):
         through_fields=('genomic_location', 'transcript'),
     )
     region = models.CharField(max_length=64, blank=True)
+
+    def __str__(self):
+        return "{}|chr{}:{}-{}".format(self.assembly, self.chromosome, self.start, self.stop)
 
 
 class TranscriptJoinTable(models.Model):
@@ -113,13 +125,13 @@ class GeneVariantInfo(models.Model):
     Join table to link all the tables together.
     """
     gene_variant_info_id = models.AutoField(primary_key=True)
-    # To serve as an identifier for each entry since none of the fields are true identifier fields
-    uuid_for_variant = models.CharField(max_length=48)
     gene = models.ForeignKey(Gene, on_delete=models.PROTECT)
-    # many to many
     variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
     genomic_location = models.ForeignKey(GenomicLocation, on_delete=models.PROTECT)
     source = models.ForeignKey(Source, on_delete=models.PROTECT)
     reported_classification = models.ForeignKey(Classification, on_delete=models.PROTECT, related_name="reported")
     inferred_classification = models.ForeignKey(Classification, on_delete=models.PROTECT, related_name="inferred")
     extra_properties = models.ForeignKey(ExtraProperties, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return "{} {}".format(self.gene, self.variant)
