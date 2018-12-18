@@ -17,7 +17,7 @@ class Transcript(models.Model):
     Initial model for transcripts
     """
     transcript_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=32, blank=True)
+    transcript_name = models.CharField(max_length=32, blank=True)
 
     def __str__(self):
         return self.name
@@ -33,19 +33,14 @@ class Mapping(models.Model):
     Model for other mappings.
     """
     mapping_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=128, blank=True)
+    mapping_name = models.CharField(max_length=128, blank=True)
 
 
 class Variant(models.Model):
     """
     Initial model for variants.
     """
-    variant_id = models.AutoField(primary_key=True)
-    mappings = models.ManyToManyField(
-        Mapping,
-        through="MappingJoinTable",
-        through_fields=('variant', 'mapping'),
-    )
+    variant_extras_id = models.AutoField(primary_key=True)
     ref_allele = models.ForeignKey(Allele, on_delete=models.PROTECT, related_name="ref_allele")
     alt_allele = models.ForeignKey(Allele, on_delete=models.PROTECT, related_name="alt_allele")
     reported_ref = models.ForeignKey(Allele, on_delete=models.PROTECT, related_name="reported_ref")
@@ -53,13 +48,7 @@ class Variant(models.Model):
     protein_change = models.CharField(max_length=32, blank=True)
 
     def __str__(self):
-        return "{} {}".format(self.protein_change, self.mappings)
-
-
-class MappingJoinTable(models.Model):
-    mapping = models.ForeignKey(Mapping, on_delete=models.PROTECT)
-    variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
-    nucleotide_change = models.BooleanField()
+        return "{}".format(self.protein_change)
 
 
 class GenomicLocation(models.Model):
@@ -71,21 +60,10 @@ class GenomicLocation(models.Model):
     chromosome = models.CharField(max_length=8, blank=True)
     start = models.CharField(max_length=32, blank=True)
     stop = models.CharField(max_length=32, blank=True)
-    transcripts = models.ManyToManyField(
-        Transcript,
-        through="TranscriptJoinTable",
-        through_fields=('genomic_location', 'transcript'),
-    )
     region = models.CharField(max_length=64, blank=True)
 
     def __str__(self):
         return "{}|chr{}:{}-{}".format(self.assembly, self.chromosome, self.start, self.stop)
-
-
-class TranscriptJoinTable(models.Model):
-    transcript = models.ForeignKey(Transcript, on_delete=models.PROTECT)
-    genomic_location = models.ForeignKey(GenomicLocation, on_delete=models.PROTECT)
-    accession = models.BooleanField()
 
 
 class Source(models.Model):
@@ -98,6 +76,9 @@ class Source(models.Model):
     last_updated = models.CharField(max_length=16, blank=True)
     source_url = models.URLField(blank=True)
 
+    def __str__(self):
+        return "{} {}".format(self.source, self.source_url)
+
 
 class Classification(models.Model):
     """
@@ -106,6 +87,9 @@ class Classification(models.Model):
     classification_id = models.AutoField(primary_key=True)
     # Max currently length 58.
     name = models.CharField(max_length=128, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class ExtraProperties(models.Model):
@@ -126,12 +110,34 @@ class GeneVariantInfo(models.Model):
     """
     gene_variant_info_id = models.AutoField(primary_key=True)
     gene = models.ForeignKey(Gene, on_delete=models.PROTECT)
-    variant = models.ForeignKey(Variant, on_delete=models.PROTECT)
+    variant_extras = models.ForeignKey(Variant, on_delete=models.PROTECT)
+    mappings = models.ManyToManyField(
+        Mapping,
+        through="MappingJoinTable",
+        through_fields=('gene_variant', 'mapping'),
+    )
     genomic_location = models.ForeignKey(GenomicLocation, on_delete=models.PROTECT)
+    transcripts = models.ManyToManyField(
+        Transcript,
+        through="TranscriptJoinTable",
+        through_fields=('gene_variant', 'transcript'),
+    )
     source = models.ForeignKey(Source, on_delete=models.PROTECT)
     reported_classification = models.ForeignKey(Classification, on_delete=models.PROTECT, related_name="reported")
     inferred_classification = models.ForeignKey(Classification, on_delete=models.PROTECT, related_name="inferred")
     extra_properties = models.ForeignKey(ExtraProperties, on_delete=models.PROTECT)
 
     def __str__(self):
-        return "{} {}".format(self.gene, self.variant)
+        return "{} {}".format(self.gene, str(self.genomic_location))
+
+
+class MappingJoinTable(models.Model):
+    mapping = models.ForeignKey(Mapping, on_delete=models.PROTECT)
+    gene_variant = models.ForeignKey(GeneVariantInfo, on_delete=models.PROTECT)
+    nucleotide_change = models.BooleanField()
+
+
+class TranscriptJoinTable(models.Model):
+    transcript = models.ForeignKey(Transcript, on_delete=models.PROTECT)
+    gene_variant = models.ForeignKey(GeneVariantInfo, on_delete=models.PROTECT)
+    accession = models.BooleanField()

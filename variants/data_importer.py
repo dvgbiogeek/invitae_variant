@@ -1,12 +1,17 @@
+import logging
+
 from variants.models import Gene, Transcript, GenomicLocation, TranscriptJoinTable, Allele, Mapping, MappingJoinTable, \
     Source, ExtraProperties, Variant, Classification, GeneVariantInfo
+
+
+logger = logging.getLogger("variants.import_variants")
 
 
 class VariantImporter(object):
     def import_variant(self, tsv_row):
         # attempt to normalize empty and Null values to be acceptable for model with CharFields
         for k, v in tsv_row.items():
-            if v is None or v == 'NULL':
+            if v is None:
                 tsv_row[k] = ''
 
         # Add Gene
@@ -17,13 +22,12 @@ class VariantImporter(object):
         genomic_location = self.genomic_location_for_variant(tsv_row)
         transcripts = self.transcripts_for_variant(tsv_row)
         accession = tsv_row.get('Accession', '')
-        self.add_transcripts_to_genomic_location(genomic_location, transcripts, accession)
 
         # Add Variant and Mappings
-        variant = self.variant(tsv_row)
+        variant_extras = self.variant_extras(tsv_row)
         mappings = self.mapping(tsv_row)
         nucleotide_change = tsv_row.get('Nucleotide Change', '')
-        self.add_mappings_to_variant(variant, mappings, nucleotide_change)
+
 
         # Add Source
         source = self.source_for_variant(tsv_row)
@@ -36,19 +40,22 @@ class VariantImporter(object):
         extra_properties = self.extra_properties_for_variant(tsv_row)
 
         # Connect all the objects into a GeneVariantInfo object
-        add_variant, created = GeneVariantInfo.objects.get_or_create(gene=gene, variant=variant,
-                                                                     genomic_location=genomic_location, source=source,
-                                                                     reported_classification=reported_classification,
-                                                                     inferred_classification=inferred_classification,
-                                                                     extra_properties=extra_properties)
+        gene_variant = GeneVariantInfo.objects.create(gene=gene, variant_extras=variant_extras,
+                                                      genomic_location=genomic_location, source=source,
+                                                      reported_classification=reported_classification,
+                                                      inferred_classification=inferred_classification,
+                                                      extra_properties=extra_properties)
+        self.add_mappings_to_gene_variant(gene_variant, mappings, nucleotide_change)
+        self.add_transcripts_to_genomic_location(gene_variant, transcripts, accession)
         print(created)
-        return add_variant
+        logger.info('Variant {}'.format(str(gene_variant)))
+        return gene_variant
 
     def transcripts_for_variant(self, tsv_row):
         transcripts = list_of_items_by_key(tsv_row, 'Transcripts')
         list_of_transcripts = []
         for transcript in transcripts:
-            transcript, created = Transcript.objects.get_or_create(name=transcript)
+            transcript, created = Transcript.objects.get_or_create(transcript_name=transcript)
             list_of_transcripts.append(transcript)
         return list_of_transcripts
 
@@ -63,10 +70,10 @@ class VariantImporter(object):
                                                           stop=genome_end, region=region)
         return genomic_location
 
-    def add_transcripts_to_genomic_location(self, genomic_location, transcripts, accession):
+    def add_transcripts_to_genomic_location(self, gene_variant, transcripts, accession):
         for transcript in transcripts:
-            is_accession = accession != '' and transcript.name == accession
-            TranscriptJoinTable.objects.get_or_create(transcript=transcript, genomic_location=genomic_location,
+            is_accession = accession != '' and transcript.transcript_name == accession
+            TranscriptJoinTable.objects.get_or_create(transcript=transcript, gene_variant=gene_variant,
                                                       accession=is_accession)
 
     def source_for_variant(self, tsv_row):
@@ -87,7 +94,7 @@ class VariantImporter(object):
                                                                           alias=alias)
         return extra_properties
 
-    def variant(self, tsv_row):
+    def variant_extras(self, tsv_row):
         ref_allele = tsv_row.get('Ref')
         alt_allele = tsv_row.get('Alt')
         rep_ref = tsv_row.get('Reported Ref')
@@ -109,14 +116,14 @@ class VariantImporter(object):
         mappings = list_of_items_by_key(tsv_row, 'Other Mappings')
         list_of_mappings = []
         for mapping in mappings:
-            mapping, created = Mapping.objects.get_or_create(name=mapping)
+            mapping, created = Mapping.objects.get_or_create(mapping_name=mapping)
             list_of_mappings.append(mapping)
         return list_of_mappings
 
-    def add_mappings_to_variant(self, variant, mappings, nucleotide_change):
+    def add_mappings_to_gene_variant(self, gene_variant, mappings, nucleotide_change):
         for mapping in mappings:
-            is_nucleotide_change = nucleotide_change is not '' and mapping.name == nucleotide_change
-            MappingJoinTable.objects.get_or_create(mapping=mapping, variant=variant,
+            is_nucleotide_change = nucleotide_change is not '' and mapping.mapping_name == nucleotide_change
+            MappingJoinTable.objects.get_or_create(mapping=mapping, gene_variant=gene_variant,
                                                    nucleotide_change=is_nucleotide_change)
 
     def classification_for_variant(self, tsv_row, key):
