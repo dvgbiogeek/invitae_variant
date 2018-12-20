@@ -72,7 +72,8 @@ class ExpertPropertiesSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('submitter_comments', 'alias')
 
 
-class GeneVariantInfoSerializer(serializers.HyperlinkedModelSerializer):
+class GeneVariantInfoSerializer(serializers.ModelSerializer):
+    gene = GeneSerializer()
     transcripts = TranscriptSerializer(read_only=True, many=True)
     mappings = MappingSerializer(read_only=True, many=True)
     variant_extras = VariantExtrasSerializer()
@@ -86,11 +87,3 @@ class GeneVariantInfoSerializer(serializers.HyperlinkedModelSerializer):
         model = GeneVariantInfo
         fields = ('gene', 'mappings', 'transcripts', 'variant_extras', 'genomic_location', 'source',
                   'reported_classification', 'inferred_classification', 'extra_properties')
-                  #
-                  #    )
-
-
-
-
-
-

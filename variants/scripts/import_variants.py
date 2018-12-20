@@ -28,7 +28,7 @@ def run(*script_args):
     zipped_tsv_file = os.path.expanduser(*script_args)
 
     # Setup file for failed imports
-    output_dir = './output'
+    output_dir = './variants/scripts/output'
     os.makedirs(output_dir, exist_ok=True)
     error_list_path = os.path.join(output_dir, "import_errors.txt")
     with io.open(error_list_path, 'wt') as err_list_out:
@@ -47,7 +47,7 @@ def run(*script_args):
                 variants_imported = 0
                 errors = 0
 
-                limit = 1000
+                limit = 10
 
                 for row in read_as_list:
                     if variants_read > limit:

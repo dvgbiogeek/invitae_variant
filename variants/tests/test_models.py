@@ -97,8 +97,8 @@ class VariantModelCreateTests(TestCase):
         self.assertEqual(ref_allele, reported_ref)
         self.assertEqual(alt_allele, reported_alt)
 
-        variant = Variant.objects.create(ref_allele=ref_allele, alt_allele=alt_allele, reported_ref=reported_ref,
-                                         reported_alt=reported_alt, protein_change='p.Pro384_Ser395delinsArg')
+        Variant.objects.create(ref_allele=ref_allele, alt_allele=alt_allele, reported_ref=reported_ref,
+                               reported_alt=reported_alt, protein_change='p.Pro384_Ser395delinsArg')
 
         # MappingJoinTable.objects.get_or_create(mapping=mapping1, variant=variant, nucleotide_change=False)
         # MappingJoinTable.objects.get_or_create(mapping=mapping2, variant=variant, nucleotide_change=True)
@@ -170,4 +170,3 @@ class ExtraPropertiesModelCreateTests(TestCase):
         last_entry = ExtraProperties.objects.last()
         self.assertEqual(last_entry.alias, '')
 
-# TODO: setup test case for join table

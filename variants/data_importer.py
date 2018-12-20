@@ -28,7 +28,6 @@ class VariantImporter(object):
         mappings = self.mapping(tsv_row)
         nucleotide_change = tsv_row.get('Nucleotide Change', '')
 
-
         # Add Source
         source = self.source_for_variant(tsv_row)
 
@@ -47,7 +46,6 @@ class VariantImporter(object):
                                                       extra_properties=extra_properties)
         self.add_mappings_to_gene_variant(gene_variant, mappings, nucleotide_change)
         self.add_transcripts_to_genomic_location(gene_variant, transcripts, accession)
-        print(created)
         logger.info('Variant {}'.format(str(gene_variant)))
         return gene_variant
 
