@@ -1,16 +1,12 @@
-from django.urls import path, include
-
-from rest_framework import routers
+from django.urls import path
 
 from variants import views
 
 
-# router = routers.DefaultRouter()
-# router.register('gene', views.GeneViewSet)
-
-
 app_name = 'variants'
 urlpatterns = [
-    path('', views.index, name='index'),
-    # path('gene', views.GeneViewSet)
+    # path(''),
+    path('api/', views.GeneVariantInfoAllList.as_view()),
+    path('api/<str:gene>', views.GeneList.as_view()),
+    path('api/variants/<str:gene>', views.GeneVariantInfoList.as_view()),
 ]

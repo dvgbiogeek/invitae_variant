@@ -47,14 +47,16 @@ def run(*script_args):
                 variants_imported = 0
                 errors = 0
 
-                limit = 10
+                limit = 100
 
                 for row in read_as_list:
-                    if variants_read > limit:
+                    if variants_imported > limit:
                         break
                     logger.info("Variant {}".format(variants_read))
                     variants_read += 1
                     # try:
+                    if variants_read < 391:
+                        continue
                     importer = VariantImporter()
                     variant = importer.import_variant(row)
                     logger.info("Loaded variant {} {} {}".format(variants_read, row['Gene'], row['Nucleotide Change']))

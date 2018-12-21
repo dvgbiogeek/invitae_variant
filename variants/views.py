@@ -1,24 +1,44 @@
 from django.shortcuts import render
 
-from rest_framework import viewsets
+from rest_framework import generics
 
 from variants.models import GeneVariantInfo, Gene
 from variants.serializers import GeneSerializer, GeneVariantInfoSerializer
 
 
-class GeneViewSet(viewsets.ModelViewSet):
+class GeneList(generics.ListAPIView):
     """
     API endpoint for genes to be viewed.
     """
-    queryset = Gene.objects.all()
     serializer_class = GeneSerializer
-    http_method_names = ['get']
+    lookup_field = 'gene_name'
+
+    def get_queryset(self):
+        gene = self.kwargs['gene']
+        queryset = Gene.objects.filter(gene_name__startswith=gene)
+        return queryset
 
 
-class GeneVariantInfoViewSet(viewsets.ModelViewSet):
+class GeneVariantInfoList(generics.ListCreateAPIView):
     """
     API endpoint for gene variant info to be viewed.
     """
-    queryset = GeneVariantInfo.objects.all()
     serializer_class = GeneVariantInfoSerializer
-    http_method_names = ['get']
+    lookup_field = 'gene_name'
+
+    def get_queryset(self):
+        gene_name = self.kwargs['gene']
+        queryset = GeneVariantInfo.objects.filter(gene__gene_name=gene_name)
+        return queryset
+
+
+class GeneVariantInfoAllList(generics.ListCreateAPIView):
+    """
+    API endpoint for gene variant info to be viewed.
+    """
+    serializer_class = GeneVariantInfoSerializer
+    ordering = ['gene_variant_id']
+
+    def get_queryset(self):
+        queryset = GeneVariantInfo.objects.all()
+        return queryset

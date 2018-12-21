@@ -22,15 +22,13 @@ from rest_framework import routers
 from variants import views
 
 
-router = routers.DefaultRouter()
-# router.register('variants', views.index, name='index')
-router.register('variants/gene', views.GeneViewSet)
-router.register('variants', views.GeneVariantInfoViewSet)
+# router = routers.DefaultRouter()
+# router.register('variants/gene', views.GeneViewSet)
+# router.register('variants', views.GeneVariantInfoViewSet)
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('variants/', include('variants.urls')),
+    path('', include('variants.urls')),
 ]
 
-urlpatterns += router.urls
