@@ -40,5 +40,3 @@ class DataImportFunctionalTests(TestCase):
         imported_variant = importer.import_variant(data_row)
         last_variant = GeneVariantInfo.objects.last()
         self.assertEqual(imported_variant, last_variant)
-
-
