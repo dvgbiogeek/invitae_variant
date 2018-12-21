@@ -24,6 +24,9 @@ class Transcript(models.Model):
 
 
 class Allele(models.Model):
+    """
+    Model for Allele
+    """
     allele_id = models.AutoField(primary_key=True)
     allele = models.CharField(max_length=16, blank=True)
 
@@ -106,7 +109,7 @@ class ExtraProperties(models.Model):
 
 class GeneVariantInfo(models.Model):
     """
-    Join table to link all the tables together.
+    Model for Gene Variants.
     """
     gene_variant_info_id = models.AutoField(primary_key=True)
     gene = models.ForeignKey(Gene, on_delete=models.PROTECT)
@@ -132,12 +135,18 @@ class GeneVariantInfo(models.Model):
 
 
 class MappingJoinTable(models.Model):
+    """
+    Model for the mapping join table.
+    """
     mapping = models.ForeignKey(Mapping, on_delete=models.PROTECT)
     gene_variant = models.ForeignKey(GeneVariantInfo, on_delete=models.PROTECT)
     nucleotide_change = models.BooleanField()
 
 
 class TranscriptJoinTable(models.Model):
+    """
+    Model for the transcript join table.
+    """
     transcript = models.ForeignKey(Transcript, on_delete=models.PROTECT)
     gene_variant = models.ForeignKey(GeneVariantInfo, on_delete=models.PROTECT)
     accession = models.BooleanField()

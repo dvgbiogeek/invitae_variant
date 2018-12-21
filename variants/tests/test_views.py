@@ -9,6 +9,10 @@ class GeneViewSetTests(TestCase):
     fixtures = ['variants/fixtures/initial_data.json']
 
     def test_gene_filtering(self):
+        """
+        API test for finding genes.
+        :return:
+        """
         client = RequestsClient()
 
         response = client.get('http://127.0.0.1:8000/api/M')
@@ -34,6 +38,10 @@ class GeneVariantInfoViewSetTests(TestCase):
     fixtures = ['variants/fixtures/initial_data.json']
 
     def test_gene_variant_info_by_gene(self):
+        """
+        API test to check variants for a gene.
+        :return:
+        """
         client = RequestsClient()
 
         # Gene with multiple variants (not ordered)

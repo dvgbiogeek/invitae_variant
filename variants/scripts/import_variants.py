@@ -1,18 +1,8 @@
-# """
-# import_variants
-#
-# Read zipped tsv data files from a directory and create variants in an instance of the variants database.
-#
-# Usage:
-# import_variants.py VARIANT_FILE
-#
-# """
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import io
 import logging
 import os
-import sys
 import zipfile
 
 from csv import DictReader
@@ -21,7 +11,12 @@ from variants.data_importer import VariantImporter
 
 
 def run(*script_args):
-
+    """
+    Script for importing variant data. Data file should be zipped. Can be run as a manage command:
+    python manage.py runscript import_variants --script-args=variants/scripts/data/variants.tsv.zip
+    :param script_args:
+    :return:
+    """
     logging.basicConfig(level=logging.INFO, format='%(levelname)-8s %(message)s')
     logger = logging.getLogger("variants.import_variants")
 
@@ -47,41 +42,21 @@ def run(*script_args):
                 variants_imported = 0
                 errors = 0
 
-                limit = 100
-
                 for row in read_as_list:
-                    if variants_imported > limit:
-                        break
                     logger.info("Variant {}".format(variants_read))
                     variants_read += 1
-                    # try:
-                    if variants_read < 391:
-                        continue
-                    importer = VariantImporter()
-                    variant = importer.import_variant(row)
-                    logger.info("Loaded variant {} {} {}".format(variants_read, row['Gene'], row['Nucleotide Change']))
-                    variants_imported += 1
-                    # except Exception as e:
-                    #     errors += 1
-                    #     logger.error("Row {} with data {} did not import.".format(variants_read, row))
-                    #     logger.error(e)
-                    #     with io.open(error_list_path, 'at', encoding='utf-8') as f:
-                    #         f.write("{} {} - {}\n".format(variants_read, row, e))
+                    try:
+                        importer = VariantImporter()
+                        variant = importer.import_variant(row)
+                        logger.info("Loaded variant {} {} {}".format(variants_read, row['Gene'], row['Nucleotide Change']))
+                        variants_imported += 1
+                    except Exception as e:
+                        errors += 1
+                        logger.error("Row {} with data {} did not import.".format(variants_read, row))
+                        logger.error(e)
+                        with io.open(error_list_path, 'at', encoding='utf-8') as f:
+                            f.write("{} {} - {}\n".format(variants_read, row, e))
 
                 logger.info("Variants read: {}".format(variants_read))
                 logger.info("Variants imported: {}".format(variants_imported))
                 logger.info("Variants with errors: {}".format(errors))
-
-
-# if __name__ == '__main__':
-#     # Basic logging configuration, in case exception occurs before custom logging is available.
-
-#
-#     # If called as 'main', the logger name is '__main__', so replace it with something more appropriate
-#
-#
-#     try:
-#         main()
-#     except Exception as e:
-#         logger.exception(e)
-#         sys.exit(1)

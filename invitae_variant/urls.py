@@ -16,17 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-
-from rest_framework import routers
-
-from variants import views
-
-
-# router = routers.DefaultRouter()
-# router.register('variants/gene', views.GeneViewSet)
-# router.register('variants', views.GeneVariantInfoViewSet)
-
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('variants.urls')),

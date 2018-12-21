@@ -6,6 +6,10 @@ from variants.models import GeneVariantInfo
 
 class DataImportFunctionalTests(TestCase):
     def data_variant_with_None(self):
+        """
+        Data for testing import.
+        :return:
+        """
         variant = {'Other Mappings': 'NM_003159.2:c.-162-?_99+?del', 'Accession': None, 'Transcripts': 'NM_003159.2',
                    'Reported Ref': None, 'Reported Classification': 'Pathogenic',
                    'Inferred Classification': 'Pathogenic', 'Last Updated': '2017-09-14', 'Assembly': None,
@@ -16,6 +20,10 @@ class DataImportFunctionalTests(TestCase):
         return variant
 
     def data_variant(self):
+        """
+        Data for tesing import part 2.
+        :return:
+        """
         variant = {'Other Mappings': 'NM_003159.2:c.-162-?_99+?del', 'Accession': '', 'Transcripts': 'NM_003159.2',
                    'Reported Ref': '', 'Reported Classification': 'Pathogenic', 'Inferred Classification': 'Pathogenic',
                    'Last Updated': '2017-09-14', 'Assembly': '', 'Source': 'ClinVar',
@@ -26,6 +34,10 @@ class DataImportFunctionalTests(TestCase):
         return variant
 
     def test_import_variant1_with_None_values(self):
+        """
+        Test importing with None values.
+        :return:
+        """
         importer = VariantImporter()
         data_row = self.data_variant_with_None()
 
@@ -34,6 +46,10 @@ class DataImportFunctionalTests(TestCase):
         self.assertEqual(imported_variant, last_variant)
 
     def test_import_variant1(self):
+        """
+        Test importer with all string values.
+        :return:
+        """
         importer = VariantImporter()
         data_row = self.data_variant()
 

@@ -8,6 +8,9 @@ logger = logging.getLogger("variants.import_variants")
 
 
 class VariantImporter(object):
+    """
+    Importer for variants. Data is from a tsv file. Empty fields are passes as empty strings.
+    """
     def import_variant(self, tsv_row):
         # attempt to normalize empty and Null values to be acceptable for model with CharFields
         for k, v in tsv_row.items():
@@ -45,7 +48,7 @@ class VariantImporter(object):
                                                       inferred_classification=inferred_classification,
                                                       extra_properties=extra_properties)
         self.add_mappings_to_gene_variant(gene_variant, mappings, nucleotide_change)
-        self.add_transcripts_to_genomic_location(gene_variant, transcripts, accession)
+        self.add_transcripts_to_gene_variant(gene_variant, transcripts, accession)
         logger.info('Variant {}'.format(str(gene_variant)))
         return gene_variant
 
@@ -68,7 +71,7 @@ class VariantImporter(object):
                                                           stop=genome_end, region=region)
         return genomic_location
 
-    def add_transcripts_to_genomic_location(self, gene_variant, transcripts, accession):
+    def add_transcripts_to_gene_variant(self, gene_variant, transcripts, accession):
         for transcript in transcripts:
             is_accession = accession != '' and transcript.transcript_name == accession
             TranscriptJoinTable.objects.get_or_create(transcript=transcript, gene_variant=gene_variant,
@@ -105,8 +108,8 @@ class VariantImporter(object):
 
         protein_change = tsv_row.get('Protein Change', '')
 
-        variant = Variant.objects.create(ref_allele=ref, alt_allele=alt, reported_ref=reported_ref,
-                                         reported_alt=reported_alt,  protein_change=protein_change)
+        variant, created = Variant.objects.get_or_create(ref_allele=ref, alt_allele=alt, reported_ref=reported_ref,
+                                                         reported_alt=reported_alt,  protein_change=protein_change)
 
         return variant
 
